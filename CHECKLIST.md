@@ -3,8 +3,9 @@
 ## לפני התחלה
 
 - [ ] יש לך שרת Ubuntu 22.04 עם גישה root/sudo
-- [ ] יש לך דומיין (אופציונלי, אבל מומלץ ל-SSL)
-- [ ] השרת נגיש מהאינטרנט (או VPN)
+- [ ] יש לך שרת n8n קיים (מקומי או מרוחק)
+- [ ] יש לך מפתח API מ-n8n
+- [ ] השרת נגיש מהמחשבים של הצוות
 
 ## התקנה
 
@@ -15,56 +16,30 @@
 
 ## הגדרות בסיסיות
 
-- [ ] שינית את `N8N_USER` מ-"admin"
-- [ ] שינית את `N8N_PASSWORD` מ-"changeme"
-- [ ] שינית את `POSTGRES_PASSWORD` מ-"changeme"
-- [ ] עדכנת את `N8N_HOST` לכתובת השרת שלך
-- [ ] הפעלת מחדש: `docker compose restart`
-
-## קבלת API Key
-
-- [ ] נכנסת ל-`http://your-server-ip:5678`
-- [ ] התחברת עם המשתמש והסיסמה
-- [ ] יצרת מפתח API חדש ב-Settings → API
-- [ ] העתקת את המפתח
-
-## הגדרת SSL (מומלץ)
-
-- [ ] התקנת certbot: `sudo apt-get install certbot python3-certbot-nginx`
-- [ ] קבלת תעודה: `sudo certbot --nginx -d your-domain.com`
-- [ ] עדכנת את `.env`: `N8N_PROTOCOL=https`
-- [ ] עדכנת את `.env`: `N8N_HOST=your-domain.com`
+- [ ] עדכנת את `N8N_API_URL` לכתובת שרת n8n שלך
+- [ ] עדכנת את `N8N_API_KEY` למפתח API מ-n8n
+- [ ] עדכנת את `PROJECT_ID` (אם רלוונטי)
 - [ ] הפעלת מחדש: `docker compose restart`
 
 ## בדיקת תקינות
 
-- [ ] שירותים רצים: `docker compose ps` (כל השירותים "Up")
-- [ ] n8n נגיש: `curl http://localhost:5678/healthz`
-- [ ] מסד נתונים עובד: `docker compose logs postgres` (ללא שגיאות)
-- [ ] Nginx עובד: `sudo systemctl status nginx`
+- [ ] שירות רץ: `docker compose ps` (שירות "Up")
+- [ ] MCP server נגיש: `curl http://localhost:3000/health`
+- [ ] חיבור ל-n8n עובד: בדוק בלוגים `docker compose logs n8n-mcp`
+- [ ] אין שגיאות בלוגים
 
 ## הפצה לחברי הצוות
 
-- [ ] יצרת מפתחות API לכל חבר צוות (או מפתח משותף)
 - [ ] שלחת את `TEAM_SETUP_GUIDE.md` לחברי הצוות
 - [ ] סיפקת:
-  - [ ] כתובת השרת (URL)
-  - [ ] מפתח API
-  - [ ] Project ID (אם רלוונטי)
+  - [ ] כתובת שרת ה-MCP (http://your-server-ip:3000)
+  - [ ] הסבר קצר על איך להתחבר
 
 ## אבטחה
 
-- [ ] שינית את כל הסיסמאות ברירת המחדל
-- [ ] הגדרת firewall (ufw)
-- [ ] הגדרת SSL (HTTPS)
-- [ ] בדקת שהפורטים הנכונים פתוחים (80, 443, 5678)
-- [ ] יצרת גיבוי ראשוני
-
-## גיבויים
-
-- [ ] יצרת גיבוי workflows: `docker compose exec n8n tar czf /tmp/backup.tar.gz -C /home/node/.n8n workflows`
-- [ ] יצרת גיבוי מסד נתונים: `docker compose exec postgres pg_dump -U n8n n8n > backup.sql`
-- [ ] הגדרת גיבוי אוטומטי (cronjob) - אופציונלי
+- [ ] הגדרת firewall (ufw) עם פורט 3000
+- [ ] בדקת שהשרת נגיש רק מהרשת הנכונה
+- [ ] בדקת שהמפתח API מאובטח
 
 ## בדיקת חיבור מצוות
 
@@ -76,7 +51,7 @@
 
 - [ ] הגדרת ניטור (אופציונלי)
 - [ ] תיעדת את פרטי ההתקנה
-- [ ] יצרת תיעוד לגיבויים ושחזור
+- [ ] יצרת תיעוד לגיבויים
 
 ## סיום
 
@@ -85,4 +60,3 @@
 **הפרויקט מוכן לשימוש!**
 
 לשאלות או בעיות, ראה README.md או QUICKSTART.md
-

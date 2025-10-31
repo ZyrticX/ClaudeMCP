@@ -1,40 +1,40 @@
 # N8N MCP Server - Ubuntu 22.04 Deployment
 
-שרת N8N MCP להרצה על Ubuntu 22.04, מאפשר לכל חברי הצוות להתחבר דרך Claude Desktop.
+שרת N8N MCP להרצה על Ubuntu 22.04, מאפשר לכל חברי הצוות להתחבר דרך Claude Desktop לשרת n8n קיים.
+
+**חשוב:** זהו שרת MCP בלבד - הוא דורש שרת n8n קיים להתחבר אליו.
 
 ## דרישות מוקדמות
 
 - Ubuntu 22.04 Server
 - גישה root/sudo
-- דומיין (אופציונלי, להגדרת SSL)
+- שרת n8n קיים (מקומי או מרוחק)
+- מפתח API מ-n8n
 
 ## מבנה הפרויקט
 
-- `docker-compose.yml` - הגדרת כל השירותים (n8n, PostgreSQL)
+- `docker-compose.yml` - הגדרת שרת MCP
 - `install.sh` - סקריפט התקנה אוטומטי ל-Ubuntu 22.04
 - `env.example` - תבנית למשתני סביבה
 - `TEAM_SETUP_GUIDE.md` - מדריך מפורט לחברי הצוות (עברית)
 - `QUICKSTART.md` - מדריך התחלה מהירה
-- `MCP_SERVER_OPTIONS.md` - אפשרויות תצורת שרת MCP
 
 ## ארכיטקטורה
 
 הפרויקט כולל:
-1. **n8n Server** - שרת אוטומציה (port 5678)
-2. **PostgreSQL** - מסד נתונים ל-n8n
-3. **Nginx** - Reverse proxy (אופציונלי)
-4. **MCP Client** - כל חבר צוות מריץ מקומית דרך Claude Desktop
+1. **n8n MCP Server** - שרת MCP שמתחבר ל-n8n קיים (port 3000)
+2. **חברי הצוות** - מתחברים דרך Claude Desktop לשרת MCP
 
-**חשוב:** כל חבר צוות מריץ את ה-MCP client על המחשב שלו (דרך Claude Desktop).
-הוא מתחבר לשרת n8n המרכזי דרך API.
-
-ראה `MCP_SERVER_OPTIONS.md` אם אתה רוצה שרת MCP מרכזי.
+**חשוב:** 
+- שרת ה-MCP מתחבר לשרת n8n שלך דרך API
+- כל חבר צוות מתחבר לשרת MCP דרך Claude Desktop
+- אתה צריך שרת n8n קיים עם מפתח API
 
 ## התקנה מהירה
 
 ```bash
 # שכפל את הפרויקט
-git clone <repository-url>
+git clone https://github.com/ZyrticX/ClaudeMCP.git
 cd ClaudeMCP
 
 # הפעל את סקריפט ההתקנה
@@ -54,7 +54,14 @@ sudo systemctl enable docker
 sudo usermod -aG docker $USER
 ```
 
-### 2. הגדרת משתני סביבה
+### 2. קבלת מפתח API מ-n8n
+
+1. התחבר לשרת n8n שלך
+2. לך ל-Settings → API
+3. לחץ על "Create API Key"
+4. העתק את המפתח (תזדקק לו בהמשך)
+
+### 3. הגדרת משתני סביבה
 
 העתק את קובץ הדוגמה והגדר את הערכים שלך:
 
@@ -64,78 +71,35 @@ nano .env
 ```
 
 עדכן את הערכים הבאים:
-- `N8N_USER` - שם משתמש ל-n8n
-- `N8N_PASSWORD` - סיסמה ל-n8n
-- `N8N_HOST` - כתובת הדומיין שלך (או IP)
-- `N8N_PROTOCOL` - http או https
-- `N8N_API_KEY` - מפתח API מ-n8n (מתקבל לאחר התחברות)
-- `PROJECT_ID` - מזהה פרויקט (אופציונלי)
+- `N8N_API_URL` - כתובת שרת n8n שלך (לדוגמה: `https://n8n.yourdomain.com`)
+- `N8N_API_KEY` - מפתח API שקיבלת מ-n8n
+- `PROJECT_ID` - מזהה פרויקט (רק אם אתה משתמש ב-n8n Cloud/Enterprise)
 
-### 3. הפעלת השירותים
+### 4. הפעלת השירותים
 
 ```bash
 docker compose up -d
 ```
 
-### 4. קבלת מפתח API מ-n8n
-
-1. גש ל-`http://your-server-ip:5678`
-2. התחבר עם המשתמש והסיסמה מהקובץ `.env`
-3. לך ל-Settings → API
-4. צור מפתח API חדש
-5. עדכן את `N8N_API_KEY` בקובץ `.env`
-6. שתף את המפתח עם חברי הצוות (ראה `TEAM_SETUP_GUIDE.md`)
-
-## הגדרת SSL (מומלץ)
+### 5. בדיקת תקינות
 
 ```bash
-sudo apt-get install -y certbot python3-certbot-nginx nginx
+# בדוק את סטטוס השירות
+docker compose ps
 
-# הגדר את Nginx (כבר מוגדר בסקריפט ההתקנה)
-# או עדכן ידנית את /etc/nginx/sites-available/n8n
+# בדוק את הלוגים
+docker compose logs -f n8n-mcp
 
-# קבל תעודת SSL
-sudo certbot --nginx -d your-domain.com
+# בדוק חיבור API
+curl http://localhost:3000/health
 ```
 
 ## חיבור Claude Desktop (לחברי הצוות)
 
-### Windows/macOS
+ראה את הקובץ `TEAM_SETUP_GUIDE.md` להנחיות מפורטות.
 
-ערוך את קובץ ההגדרות של Claude Desktop:
-
-**Windows:**
-```
-C:\Users\<USERNAME>\AppData\Roaming\Claude\claude_desktop_config.json
-```
-
-**macOS:**
-```
-~/Library/Application Support/Claude/claude_desktop_config.json
-```
-
-הוסף את ההגדרות הבאות:
-
-```json
-{
-  "mcpServers": {
-    "n8n": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@ahmad.soliman/mcp-n8n-server"
-      ],
-      "env": {
-        "N8N_API_URL": "https://your-domain.com",
-        "N8N_API_KEY": "your_api_key_here",
-        "PROJECT_ID": "your_project_id_here"
-      }
-    }
-  }
-}
-```
-
-**או** אם השרת MCP רץ באופן מרכזי:
+**בקצרה:**
+ערוך את `claude_desktop_config.json` והוסף:
 
 ```json
 {
@@ -145,13 +109,6 @@ C:\Users\<USERNAME>\AppData\Roaming\Claude\claude_desktop_config.json
     }
   }
 }
-```
-
-### Linux
-
-```bash
-# מיקום קובץ ההגדרות
-~/.config/Claude/claude_desktop_config.json
 ```
 
 ## ניהול השירותים
@@ -164,8 +121,7 @@ docker compose ps
 
 ### צפייה בלוגים
 ```bash
-docker compose logs -f n8n
-docker compose logs -f postgres
+docker compose logs -f n8n-mcp
 ```
 
 ### הפעלה מחדש
@@ -189,48 +145,30 @@ docker compose pull
 docker compose up -d
 ```
 
-## גיבוי
-
-### גיבוי workflows
-```bash
-docker compose exec n8n tar czf /tmp/n8n-backup.tar.gz -C /home/node/.n8n workflows
-docker cp n8n:/tmp/n8n-backup.tar.gz ./n8n-backup-$(date +%Y%m%d).tar.gz
-```
-
-### גיבוי מסד נתונים
-```bash
-docker compose exec postgres pg_dump -U n8n n8n > backup-$(date +%Y%m%d).sql
-```
-
 ## פתרון בעיות
 
-### שירותים לא מתחילים
+### שירות לא מתחיל
 ```bash
 docker compose logs
 ```
+
+### בעיית חיבור ל-n8n
+- ודא ש-`N8N_API_URL` נכון
+- ודא ש-`N8N_API_KEY` תקף
+- בדוק שהשרת n8n נגיש מהשרת הזה
 
 ### בעיות הרשאות
 ```bash
 sudo chown -R $USER:$USER /opt/n8n-mcp
 ```
 
-### איפוס סיסמה
-```bash
-# עצור את הקונטיינרים
-docker compose down
-
-# מחק את נתוני n8n
-docker volume rm n8n-mcp_n8n_data
-
-# הפעל מחדש
-docker compose up -d
-```
-
 ## תמיכה
 
-לבעיות או שאלות, צור issue בפרויקט או פנה למנהל המערכת.
+לבעיות או שאלות:
+- ראה את [n8n-mcp repository](https://github.com/czlonkowski/n8n-mcp)
+- צור issue בפרויקט זה
+- פנה למנהל המערכת
 
 ## רישיון
 
 MIT
-
