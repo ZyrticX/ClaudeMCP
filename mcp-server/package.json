@@ -1,0 +1,15 @@
+{
+  "name": "n8n-mcp-server",
+  "version": "1.0.0",
+  "description": "N8N MCP Server for Ubuntu deployment",
+  "main": "index.js",
+  "scripts": {
+    "start": "mcp-n8n-server"
+  },
+  "dependencies": {
+    "@ahmad.soliman/mcp-n8n-server": "^1.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
+
